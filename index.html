@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Foto Generator V5</title>
+<title>Foto Generator V5.1</title>
 <style>
 *{box-sizing:border-box}
 :root{
@@ -23,20 +23,34 @@ button.danger{background:#432629;border-color:#60383c}
 button.active{background:var(--blue);border-color:var(--blue)}
 button.ghost{background:#151922}
 button:disabled{opacity:.45;cursor:not-allowed}
-input[type="range"]{padding:0;border:none;background:none}
+input[type="range"]{width:100%;padding:0;border:none;background:transparent;appearance:none;-webkit-appearance:none;height:18px;display:block}
+input[type="range"]::-webkit-slider-runnable-track{height:5px;background:#343c49;border-radius:999px}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#2f80ed;border:2px solid #8ab6ff;margin-top:-4.5px;box-shadow:0 0 0 2px rgba(47,128,237,.10)}
+input[type="range"]::-moz-range-track{height:5px;background:#343c49;border-radius:999px}
+input[type="range"]::-moz-range-progress{height:5px;background:#2f80ed;border-radius:999px}
+input[type="range"]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#2f80ed;border:2px solid #8ab6ff}
+input[type="range"]:focus{outline:none}
 textarea{resize:vertical;min-height:72px}
 header{padding:16px 22px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#171b22,#141820)}
 header h1{margin:0;font-size:21px}
 header p{margin:4px 0 0;font-size:12px;color:var(--muted)}
-.layout{display:grid;grid-template-columns:320px minmax(420px,1fr) 360px;gap:16px;padding:16px;max-width:1900px;margin:auto;align-items:start}
+.layout{display:grid;grid-template-columns:300px minmax(520px,1fr) 410px;gap:16px;padding:16px;max-width:1900px;margin:auto;align-items:start}
 .sidebar,.workspace{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
-.sidebar{padding:14px;max-height:calc(100vh - 110px);overflow:auto}
+.sidebar{padding:14px;max-height:calc(100vh - 110px);overflow:auto;scrollbar-width:thin;scrollbar-color:#4a5361 #11161d}
+.sidebar::-webkit-scrollbar{width:9px;height:9px}
+.sidebar::-webkit-scrollbar-track{background:#11161d;border-radius:999px}
+.sidebar::-webkit-scrollbar-thumb{background:#4a5361;border-radius:999px;border:2px solid #11161d}
+.sidebar::-webkit-scrollbar-thumb:hover{background:#657081}
 .workspace{padding:14px;min-height:calc(100vh - 110px)}
 .section{margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.05)}
 .section:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
 .section h3{margin:0 0 10px;font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:#b7c0cc}
+#rightSidebar .section input[type="range"]{width:100%}
+#rightSidebar .label-row{margin-top:2px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.project-row{display:grid;grid-template-columns:68px 68px minmax(0,1fr);gap:8px;align-items:end}
+#fitMode{font-size:12px;padding:7px 24px 7px 8px;min-width:0;height:38px}
 .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .row{display:flex;gap:8px;align-items:center}
 .label-row{display:flex;justify-content:space-between;gap:8px;font-size:12px;margin-bottom:4px}
@@ -54,10 +68,11 @@ header p{margin:4px 0 0;font-size:12px;color:var(--muted)}
 .thumb img{width:100%;height:60px;object-fit:cover;display:block}
 .thumb .remove{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;border:none;background:rgba(0,0,0,.7);color:#fff;padding:0;line-height:18px;font-size:12px}
 .info-box{border:1px solid var(--border);background:#11161d;border-radius:10px;padding:10px;color:var(--muted);font-size:11px;line-height:1.55}
-.workspace-top{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;margin-bottom:12px}
+.workspace-top{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;margin-bottom:8px}
 .workspace-top .title h2{margin:0 0 4px;font-size:16px}
 .workspace-top .title p{margin:0;color:var(--muted);font-size:12px}
-.action-row{display:flex;gap:8px;flex-wrap:wrap}
+.action-row{display:flex;gap:6px;flex-wrap:nowrap;justify-content:flex-end;align-items:center}
+.action-row button{width:auto;min-width:0;padding:6px 9px;font-size:11px;line-height:1.05;border-radius:7px;white-space:nowrap}
 .canvas-frame{position:relative;min-height:620px;border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center;
   background:
     linear-gradient(45deg,#1e242d 25%,transparent 25%),
@@ -85,14 +100,14 @@ header p{margin:4px 0 0;font-size:12px;color:var(--muted)}
 .curve-wrap{background:#11161d;border:1px solid var(--border);border-radius:10px;padding:8px}
 #curveCanvas{width:100%;display:block;height:150px;background:#10151d;border-radius:8px;touch-action:none}
 .pill{display:inline-block;padding:3px 8px;border:1px solid var(--border);border-radius:999px;font-size:11px;color:#b8c1ce;background:#11161d}
-@media (max-width:1400px){.layout{grid-template-columns:290px 1fr 330px}}
+@media (max-width:1400px){.layout{grid-template-columns:280px 1fr 360px}}
 @media (max-width:1180px){.layout{grid-template-columns:1fr}.sidebar,.workspace{max-height:none}.canvas-frame{min-height:430px}.bottom-panels{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <header>
-  <h1>Foto Generator — V5</h1>
-  <p>Naprawione aktywne ładowanie zdjęć, układ 3-kolumnowy i główne pole robocze pośrodku.</p>
+  <h1>Foto Generator — V5.1</h1>
+  <p>Edytor zdjęć do dokumentów i wydruku — układ 3-kolumnowy.</p>
 </header>
 <div class="layout">
   <aside class="sidebar" id="leftSidebar">
@@ -155,7 +170,7 @@ header p{margin:4px 0 0;font-size:12px;color:var(--muted)}
         </div>
       </div>
 
-      <div class="grid3" style="margin-top:10px">
+      <div class="project-row" style="margin-top:10px">
         <div>
           <div class="label-row"><span>DPI</span></div>
           <select id="dpiSelect">
@@ -173,8 +188,8 @@ header p{margin:4px 0 0;font-size:12px;color:var(--muted)}
         <div>
           <div class="label-row"><span>Dopasowanie</span></div>
           <select id="fitMode">
-            <option value="fill">Wypełnij — bez marginesów</option>
-            <option value="fit">Dopasuj — całe zdjęcie</option>
+            <option value="fill">Wypełnij</option>
+            <option value="fit">Dopasuj</option>
           </select>
         </div>
       </div>
@@ -200,9 +215,9 @@ header p{margin:4px 0 0;font-size:12px;color:var(--muted)}
         <p id="workspaceSubtitle">Brak aktywnego zdjęcia.</p>
       </div>
       <div class="action-row">
-        <button id="undoBtn">↶ Cofnij</button>
-        <button id="redoBtn">↷ Ponów</button>
-        <button id="compareBtn" class="ghost">Przytrzymaj: oryginał</button>
+        <button id="undoBtn" title="Cofnij ostatnią zmianę">↶ Cofnij</button>
+        <button id="redoBtn" title="Ponów zmianę">↷ Ponów</button>
+        <button id="compareBtn" class="ghost" title="Przytrzymaj, aby zobaczyć oryginał">Oryginał</button>
       </div>
     </div>
 
@@ -559,15 +574,14 @@ function updateProjectInfo(){
 }
 function scheduleRender(){ if(renderQueued) return; renderQueued=true; requestAnimationFrame(()=>{renderQueued=false; renderAll();}); }
 function getPhotoCanvasSize(dpi){const f=getCurrentFormatMm(); return {w:mmToPx(f.w,dpi),h:mmToPx(f.h,dpi)};}
-function getTransform(photo, outW, outH, dpi=PREVIEW_DPI){
+function getTransform(photo, outW, outH){
   const s=photo.state; const img=photo.img; const fitMode=els.fitMode.value;
   const rotated = Math.abs((s.rotation % 180))===90;
   const iw = rotated ? img.height : img.width;
   const ih = rotated ? img.width : img.height;
   const scaleBase = fitMode==='fill' ? Math.max(outW/iw, outH/ih) : Math.min(outW/iw, outH/ih);
   const scale = scaleBase * (s.zoom/100);
-  const factor = dpi / PREVIEW_DPI;
-  return {scale,cx:outW/2 + s.offsetX * factor, cy:outH/2 + s.offsetY * factor, rotation:(s.rotation + s.straighten) * Math.PI/180, flipX:s.flipX?-1:1, flipY:s.flipY?-1:1};
+  return {scale,cx:outW/2 + s.offsetX, cy:outH/2 + s.offsetY, rotation:(s.rotation + s.straighten) * Math.PI/180, flipX:s.flipX?-1:1, flipY:s.flipY?-1:1};
 }
 function renderPhotoCanvas(photo, dpi, opts={preview:false, guides:false, original:false}){
   const size=getPhotoCanvasSize(dpi); const canvas=document.createElement('canvas'); canvas.width=size.w; canvas.height=size.h; const ctx=canvas.getContext('2d',{willReadFrequently:true});
@@ -576,7 +590,7 @@ function renderPhotoCanvas(photo, dpi, opts={preview:false, guides:false, origin
   const borderSizePx = borderEnabled ? mmToPx(Number(photo.state.borderSize), dpi) : 0;
   const inner = {x:borderSizePx,y:borderSizePx,w:canvas.width-borderSizePx*2,h:canvas.height-borderSizePx*2};
   if(borderEnabled){ctx.fillStyle=photo.state.borderColor; ctx.fillRect(0,0,canvas.width,canvas.height); ctx.fillStyle='#fff'; ctx.fillRect(inner.x,inner.y,inner.w,inner.h);} 
-  const t=getTransform(photo, inner.w, inner.h, dpi);
+  const t=getTransform(photo, inner.w, inner.h);
   ctx.save();
   ctx.beginPath(); ctx.rect(inner.x,inner.y,inner.w,inner.h); ctx.clip();
   ctx.translate(inner.x + t.cx, inner.y + t.cy); ctx.rotate(t.rotation); ctx.scale(t.flipX, t.flipY);
@@ -683,7 +697,13 @@ function onPointerMove(e){ const photo=getActivePhoto(); if(!photo||!state.dragg
   else if(drag.type==='pencil'){ const p=getCanvasPoint(e); drag.stroke.points.push({x:p.x/els.mainCanvas.width,y:p.y/els.mainCanvas.height}); scheduleRender(); }
 }
 function onPointerUp(){ const photo=getActivePhoto(); if(state.dragging && state.dragging.type==='pan' && photo){ pushHistory(photo); } state.dragging=null; els.canvasFrame.classList.remove('dragging'); }
-function applyCrop(){ const photo=getActivePhoto(); if(!photo||!state.cropSelection) return; pushHistory(photo); const sel=state.cropSelection; const width=els.mainCanvas.width, height=els.mainCanvas.height; const currentZoom=photo.state.zoom; const targetScale=width/sel.w; let newZoom=currentZoom*targetScale; newZoom=Math.max(25,Math.min(600,newZoom)); const scaleFactor=newZoom/currentZoom; photo.state.zoom=newZoom; photo.state.offsetX = (photo.state.offsetX - (sel.x - width/2)) * scaleFactor; photo.state.offsetY = (photo.state.offsetY - (sel.y - height/2)) * scaleFactor; state.cropSelection=null; setTool('pan'); syncUIFromActive(); scheduleRender(); }
+function applyCrop(){ const photo=getActivePhoto(); if(!photo||!state.cropSelection) return; pushHistory(photo); const sel=state.cropSelection; const current=renderPhotoCanvas(photo, PREVIEW_DPI,{preview:true,guides:false}); // unused only size refs
+  const width=els.mainCanvas.width, height=els.mainCanvas.height; const imgCurrent=getTransform(photo, width, height); const currentZoom=photo.state.zoom; const targetScale=width/sel.w; let newZoom=currentZoom*targetScale; newZoom=Math.max(25,Math.min(600,newZoom)); const realScale=newZoom/currentZoom; const currentDrawW=photo.img.width*imgCurrent.scale, currentDrawH=photo.img.height*imgCurrent.scale;
+  const newDrawW=currentDrawW*realScale, newDrawH=currentDrawH*realScale;
+  const drawX=(width/2 + photo.state.offsetX) - currentDrawW/2; const drawY=(height/2 + photo.state.offsetY) - currentDrawH/2;
+  const newX=(drawX-sel.x)*realScale; const newY=(drawY-sel.y)*realScale;
+  photo.state.zoom=newZoom; photo.state.offsetX = newX - (width-newDrawW)/2; photo.state.offsetY = newY - (height-newDrawH)/2;
+  state.cropSelection=null; setTool('pan'); syncUIFromActive(); scheduleRender(); }
 function addText(){ const photo=getActivePhoto(); if(!photo) return; const text=els.textInput.value.trim(); if(!text) return; pushHistory(photo); photo.state.texts.push({text,color:els.textColor.value,size:Number(els.textSize.value),x:0.5,y:0.9}); scheduleRender(); }
 function autoAdjust(){ const photo=getActivePhoto(); if(!photo) return; pushHistory(photo); const s=photo.state; s.exposure=8; s.contrast=10; s.highlights=-18; s.shadows=18; s.whites=5; s.blacks=-5; s.temperature=0; s.tint=0; s.saturation=6; s.clarity=8; syncUIFromActive(); scheduleRender(); }
 function resetAdjustments(){ const photo=getActivePhoto(); if(!photo) return; pushHistory(photo); Object.assign(photo.state,{exposure:0,brightness:0,contrast:0,highlights:0,shadows:0,whites:0,blacks:0,temperature:0,tint:0,saturation:0,clarity:0,sharpness:0,vignette:0,curves:DEFAULT_CURVES()}); syncUIFromActive(); scheduleRender(); }
