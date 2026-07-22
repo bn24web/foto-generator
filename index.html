@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Foto Generator</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #111318;
+      color: #f4f4f4;
+    }
+
+    header {
+      padding: 18px 24px;
+      background: #181b21;
+      border-bottom: 1px solid #30343c;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    header p {
+      margin: 5px 0 0;
+      color: #aeb4be;
+      font-size: 14px;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: minmax(420px, 1fr) 360px;
+      gap: 20px;
+      padding: 20px;
+      max-width: 1500px;
+      margin: auto;
+    }
+
+    .panel {
+      background: #181b21;
+      border: 1px solid #30343c;
+      border-radius: 14px;
+      padding: 18px;
+    }
+
+    .preview-panel {
+      min-height: 720px;
+    }
+
+    .controls-panel h2,
+    .preview-panel h2 {
+      margin-top: 0;
+      font-size: 18px;
+    }
+
+    .drop-area {
+      border: 2px dashed #49515e;
+      border-radius: 12px;
+      padding: 18px;
+      text-align: center;
+      margin-bottom: 18px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .drop-area:hover {
+      border-color: #7da7ff;
+      background: #1d222b;
+    }
+
+    .drop-area input {
+      display: none;
+    }
+
+    button,
+    select {
+      width: 100%;
+      background: #242933;
+      color: white;
+      border: 1px solid #3a414d;
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 14px;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #303744;
+    }
+
+    .primary {
+      background: #2563eb;
+      border-color: #2563eb;
+      font-weight: bold;
+    }
+
+    .primary:hover {
+      background: #1d4ed8;
+    }
+
+    .section {
+      margin-bottom: 22px;
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: bold;
+      text-transform: uppercase;
+      color: #aeb4be;
+      margin-bottom: 10px;
+      letter-spacing: 0.5px;
+    }
+
+    .control {
+      margin-bottom: 14px;
+    }
+
+    .control-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+
+    .value {
+      color: #8fb3ff;
+      min-width: 55px;
+      text-align: right;
+    }
+
+    input[type="range"] {
+      width: 100%;
+    }
+
+    .canvas-wrap {
+      position: relative;
+      width: 100%;
+      min-height: 620px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background:
+        linear-gradient(45deg, #20242b 25%, transparent 25%),
+        linear-gradient(-45deg, #20242b 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #20242b 75%),
+        linear-gradient(-45deg, transparent 75%, #20242b 75%);
+      background-size: 24px 24px;
+      background-position: 0 0, 0 12px, 12px -12px, -12px 0;
+      border-radius: 12px;
+      overflow: hidden;
+      touch-action: none;
+      user-select: none;
+    }
+
+    canvas {
+      display: block;
+      max-width: 100%;
+      max-height: 650px;
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.1);
+    }
+
+    .empty {
+      color: #858c97;
+      text-align: center;
+      padding: 30px;
+    }
+
+    .format-info {
+      margin-top: 8px;
+      color: #8d96a3;
+      font-size: 12px;
+    }
+
+    .buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .footer-note {
+      color: #858c97;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 900px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      .preview-panel {
+        min-height: auto;
+      }
+
+      .canvas-wrap {
+        min-height: 450px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>Foto Generator</h1>
+  <p>Zdjęcia do dokumentów, legitymacji i wydruku fotograficznego</p>
+</header>
+
+<div class="app">
+
+  <!-- PODGLĄD -->
+  <section class="panel preview-panel">
+    <h2>Podgląd zdjęcia</h2>
+
+    <div class="canvas-wrap" id="canvasWrap">
+      <div class="empty" id="emptyMessage">
+        Wczytaj zdjęcie, aby rozpocząć
+      </div>
+
+      <canvas id="previewCanvas" hidden></canvas>
+    </div>
+
+    <div class="format-info" id="formatInfo">
+      Format: —
+    </div>
+  </section>
+
+
+  <!-- PANEL STEROWANIA -->
+  <aside class="panel controls-panel">
+
+    <div class="section">
+      <div class="section-title">1. Zdjęcie</div>
+
+      <label class="drop-area" for="fileInput">
+        Kliknij tutaj lub przeciągnij zdjęcie
+        <input type="file" id="fileInput" accept="image/*">
+      </label>
+    </div>
+
+
+    <div class="section">
+      <div class="section-title">2. Format dokumentu</div>
+
+      <select id="preset">
+        <option value="35x45">Dowód osobisty / paszport — 35 × 45 mm</option>
+        <option value="school35x45">Legitymacja szkolna — 35 × 45 mm</option>
+        <option value="school30x42">Legitymacja szkolna — 30 × 42 mm</option>
+      </select>
+
+      <div class="format-info" id="pixelInfo"></div>
+    </div>
+
+
+    <div class="section">
+      <div class="section-title">3. Kadrowanie</div>
+
+      <div class="control">
+        <div class="control-row">
+          <span>Powiększenie</span>
+          <span class="value" id="zoomValue">100%</span>
+        </div>
+        <input type="range" id="zoom" min="100" max="300" value="100">
+      </div>
+
+      <div class="control">
+        <div class="control-row">
+          <span>Pozycja pozioma</span>
+          <span class="value" id="offsetXValue">0</span>
+        </div>
+        <input type="range" id="offsetX" min="-300" max="300" value="0">
+      </div>
+
+      <div class="control">
+        <div class="control-row">
+          <span>Pozycja pionowa</span>
+          <span class="value" id="offsetYValue">0</span>
+        </div>
+        <input type="range" id="offsetY" min="-300" max="300" value="0">
+      </div>
+    </div>
+
+
+    <div class="section">
+      <div class="section-title">4. Korekcja zdjęcia</div>
+
+      <div class="control">
+        <div class="control-row">
+          <span>Ekspozycja</span>
+          <span class="value" id="exposureValue">0.0 EV</span>
+        </div>
+        <input type="range"
+               id="exposure"
+               min="-100"
+               max="100"
+               value="0">
+      </div>
+
+      <div class="control">
+        <div class="control-row">
+          <span>Kontrast</span>
+          <span class="value" id="contrastValue">0</span>
+        </div>
+        <input type="range"
+               id="contrast"
+               min="-50"
+               max="50"
+               value="0">
+      </div>
+
+      <div class="control">
+        <div class="control-row">
+          <span>Temperatura</span>
+          <span class="value" id="temperatureValue">0</span>
+        </div>
+        <input type="range"
+               id="temperature"
+               min="-50"
+               max="50"
+               value="0">
+      </div>
+
+      <div class="control">
+        <div class="control-row">
+          <span>Odcień</span>
+          <span class="value" id="tintValue">0</span>
+        </div>
+        <input type="range"
+               id="tint"
+               min="-50"
+               max="50"
+               value="0">
+      </div>
+
+      <div class="control">
+        <div class="control-row">
+          <span>Nasycenie</span>
+          <span class="value" id="saturationValue">0</span>
+        </div>
+        <input type="range"
+               id="saturation"
+               min="-50"
+               max="50"
+               value="0">
+      </div>
+
+      <div class="buttons">
+        <button id="resetCrop">Reset kadru</button>
+        <button id="resetCorrection">Reset kolorów</button>
+      </div>
+    </div>
+
+
+    <div class="section">
+      <div class="section-title">5. Eksport</div>
+
+      <button class="primary" id="downloadSingle">
+        Pobierz pojedyncze zdjęcie
+      </button>
+    </div>
+
+    <div class="footer-note">
+      Zdjęcie jest przetwarzane lokalnie w Twojej przeglądarce.
+      Nie jest wysyłane na żaden serwer.
+    </div>
+
+  </aside>
+
+</div>
+
+
+<script>
+
+const DPI = 300;
+
+const presets = {
+  "35x45": {
+    name: "Dowód / paszport",
+    widthMm: 35,
+    heightMm: 45
+  },
+
+  "school35x45": {
+    name: "Legitymacja szkolna",
+    widthMm: 35,
+    heightMm: 45
+  },
+
+  "school30x42": {
+    name: "Legitymacja szkolna",
+    widthMm: 30,
+    heightMm: 42
+  }
+};
+
+
+const fileInput = document.getElementById("fileInput");
+const canvas = document.getElementById("previewCanvas");
+const ctx = canvas.getContext("2d");
+
+const emptyMessage = document.getElementById("emptyMessage");
+
+const presetSelect = document.getElementById("preset");
+
+const zoom = document.getElementById("zoom");
+const offsetX = document.getElementById("offsetX");
+const offsetY = document.getElementById("offsetY");
+
+const exposure = document.getElementById("exposure");
+const contrast = document.getElementById("contrast");
+const temperature = document.getElementById("temperature");
+const tint = document.getElementById("tint");
+const saturation = document.getElementById("saturation");
+
+let image = null;
+
+
+/* ======================================
+   PRZELICZENIE MM → PX
+====================================== */
+
+function mmToPx(mm) {
+  return Math.round((mm / 25.4) * DPI);
+}
+
+
+/* ======================================
+   WCZYTANIE ZDJĘCIA
+====================================== */
+
+fileInput.addEventListener("change", function () {
+
+  const file = this.files[0];
+
+  if (!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = function (event) {
+
+    const img = new Image();
+
+    img.onload = function () {
+
+      image = img;
+
+      canvas.hidden = false;
+      emptyMessage.style.display = "none";
+
+      resetCrop();
+      render();
+    };
+
+    img.src = event.target.result;
+  };
+
+  reader.readAsDataURL(file);
+});
+
+
+/* ======================================
+   RENDEROWANIE
+====================================== */
+
+function render() {
+
+  if (!image) return;
+
+  const preset = presets[presetSelect.value];
+
+  const width = mmToPx(preset.widthMm);
+  const height = mmToPx(preset.heightMm);
+
+  canvas.width = width;
+  canvas.height = height;
+
+  ctx.clearRect(0, 0, width, height);
+
+
+  const imageRatio = image.width / image.height;
+  const canvasRatio = width / height;
+
+  let baseWidth;
+  let baseHeight;
+
+
+  if (imageRatio > canvasRatio) {
+
+    baseHeight = height;
+    baseWidth = height * imageRatio;
+
+  } else {
+
+    baseWidth = width;
+    baseHeight = width / imageRatio;
+  }
+
+
+  const zoomFactor = zoom.value / 100;
+
+  const drawWidth = baseWidth * zoomFactor;
+  const drawHeight = baseHeight * zoomFactor;
+
+
+  const x =
+    (width - drawWidth) / 2 +
+    Number(offsetX.value);
+
+  const y =
+    (height - drawHeight) / 2 +
+    Number(offsetY.value);
+
+
+  ctx.drawImage(
+    image,
+    x,
+    y,
+    drawWidth,
+    drawHeight
+  );
+
+
+  applyCorrections();
+
+  updateLabels();
+}
+
+
+/* ======================================
+   KOREKCJA KOLORÓW
+====================================== */
+
+function applyCorrections() {
+
+  const imageData =
+    ctx.getImageData(
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+
+  const data = imageData.data;
+
+
+  const exposureEV =
+    Number(exposure.value) / 100;
+
+  const exposureFactor =
+    Math.pow(2, exposureEV);
+
+
+  const contrastValue =
+    Number(contrast.value);
+
+  const contrastFactor =
+    (259 * (contrastValue + 255)) /
+    (255 * (259 - contrastValue));
+
+
+  const temp =
+    Number(temperature.value);
+
+  const tintValue =
+    Number(tint.value);
+
+  const sat =
+    1 + Number(saturation.value) / 100;
+
+
+  for (
+    let i = 0;
+    i < data.length;
+    i += 4
+  ) {
+
+    let r = data[i];
+    let g = data[i + 1];
+    let b = data[i + 2];
+
+
+    /* ekspozycja */
+
+    r *= exposureFactor;
+    g *= exposureFactor;
+    b *= exposureFactor;
+
+
+    /* temperatura */
+
+    r += temp * 0.7;
+    b -= temp * 0.7;
+
+
+    /* tint */
+
+    g -= tintValue * 0.4;
+
+    r += tintValue * 0.2;
+    b += tintValue * 0.2;
+
+
+    /* kontrast */
+
+    r =
+      contrastFactor *
+      (r - 128) +
+      128;
+
+    g =
+      contrastFactor *
+      (g - 128) +
+      128;
+
+    b =
+      contrastFactor *
+      (b - 128) +
+      128;
+
+
+    /* nasycenie */
+
+    const gray =
+      0.299 * r +
+      0.587 * g +
+      0.114 * b;
+
+    r =
+      gray +
+      sat *
+      (r - gray);
+
+    g =
+      gray +
+      sat *
+      (g - gray);
+
+    b =
+      gray +
+      sat *
+      (b - gray);
+
+
+    data[i] =
+      clamp(r);
+
+    data[i + 1] =
+      clamp(g);
+
+    data[i + 2] =
+      clamp(b);
+  }
+
+
+  ctx.putImageData(
+    imageData,
+    0,
+    0
+  );
+}
+
+
+function clamp(value) {
+
+  return Math.max(
+    0,
+    Math.min(
+      255,
+      value
+    )
+  );
+}
+
+
+/* ======================================
+   RESET
+====================================== */
+
+function resetCrop() {
+
+  zoom.value = 100;
+
+  offsetX.value = 0;
+  offsetY.value = 0;
+
+  render();
+}
+
+
+function resetCorrection() {
+
+  exposure.value = 0;
+  contrast.value = 0;
+  temperature.value = 0;
+  tint.value = 0;
+  saturation.value = 0;
+
+  render();
+}
+
+
+document
+  .getElementById("resetCrop")
+  .addEventListener(
+    "click",
+    resetCrop
+  );
+
+
+document
+  .getElementById("resetCorrection")
+  .addEventListener(
+    "click",
+    resetCorrection
+  );
+
+
+/* ======================================
+   SUWAKI
+====================================== */
+
+[
+  zoom,
+  offsetX,
+  offsetY,
+  exposure,
+  contrast,
+  temperature,
+  tint,
+  saturation
+].forEach(function (control) {
+
+  control.addEventListener(
+    "input",
+    render
+  );
+});
+
+
+presetSelect.addEventListener(
+  "change",
+  render
+);
+
+
+/* ======================================
+   INFORMACJE
+====================================== */
+
+function updateLabels() {
+
+  const preset =
+    presets[presetSelect.value];
+
+  const w =
+    mmToPx(preset.widthMm);
+
+  const h =
+    mmToPx(preset.heightMm);
+
+
+  document.getElementById(
+    "formatInfo"
+  ).textContent =
+    `Format: ${preset.widthMm} × ${preset.heightMm} mm`;
+
+
+  document.getElementById(
+    "pixelInfo"
+  ).textContent =
+    `${w} × ${h} px przy ${DPI} dpi`;
+
+
+  document.getElementById(
+    "zoomValue"
+  ).textContent =
+    zoom.value + "%";
+
+
+  document.getElementById(
+    "offsetXValue"
+  ).textContent =
+    offsetX.value;
+
+
+  document.getElementById(
+    "offsetYValue"
+  ).textContent =
+    offsetY.value;
+
+
+  document.getElementById(
+    "exposureValue"
+  ).textContent =
+    (
+      Number(exposure.value) / 100
+    ).toFixed(2) +
+    " EV";
+
+
+  document.getElementById(
+    "contrastValue"
+  ).textContent =
+    contrast.value;
+
+
+  document.getElementById(
+    "temperatureValue"
+  ).textContent =
+    temperature.value;
+
+
+  document.getElementById(
+    "tintValue"
+  ).textContent =
+    tint.value;
+
+
+  document.getElementById(
+    "saturationValue"
+  ).textContent =
+    saturation.value;
+}
+
+
+/* ======================================
+   POBIERANIE
+====================================== */
+
+document
+  .getElementById(
+    "downloadSingle"
+  )
+  .addEventListener(
+    "click",
+    function () {
+
+      if (!image) {
+
+        alert(
+          "Najpierw wczytaj zdjęcie."
+        );
+
+        return;
+      }
+
+
+      const preset =
+        presets[
+          presetSelect.value
+        ];
+
+
+      const link =
+        document.createElement(
+          "a"
+        );
+
+
+      link.download =
+        `foto_${preset.widthMm}x${preset.heightMm}mm.jpg`;
+
+
+      link.href =
+        canvas.toDataURL(
+          "image/jpeg",
+          0.98
+        );
+
+
+      link.click();
+    }
+  );
+
+
+updateLabels();
+
+</script>
+
+</body>
+</html>
